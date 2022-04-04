@@ -1,5 +1,8 @@
 <?php
 	include 'core/init.php';
+	if(isset($_SESSION['user_id'])){
+		header('Location: home.php');
+	}
 ?>
 
 
@@ -8,7 +11,7 @@
 		<title>MediConnect</title>
 		<meta charset="UTF-8" />
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.css"/>
-		<link rel="stylesheet" href="assets/css/style-complete.css"/>
+		<link rel="stylesheet" href="assets/css/style-sheet.css"/>
 	</head>
 	<!--Helvetica Neue-->
 <body>
@@ -52,7 +55,9 @@
 			<h1 style="color:black">Welcome to MediConnect!</h1>
 
 			<br/>
-			<p style="color:black">A place to connect with various people - get guidance from renowned doctors, and get to interact with people with the same mindset as you, from around the world. This will help you create a medical network of your own and share your thoughts and problems with the world!</p>
+			<p style="color:black">Got a health-related query? Your answer lies here.
+				Join a world-wide network of people facing headaches with health and a miasma of medicinal misuses, chat with specialist doctors or pose your problems to our helpful chatbot for quick answers. 
+				We promise to create a network where you can give and receive medical advice suited to your individual needs. Come, be a part of it!</p>
 		</div><!-- content left ends -->
 
 		<!-- content right ends -->
@@ -64,7 +69,7 @@
 
 			<!-- SignUp Section -->
 			<div class="signup-wrapper">
-			   <?php include 'includes/signup.php'; ?>
+			   <?php include 'includes/signup-form.php'; ?>
 			</div>
 			<!-- SIGN UP wrapper end -->
 

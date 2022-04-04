@@ -2,6 +2,36 @@
 	include 'core/init.php';
 	$user_id = $_SESSION['user_id'];
 	$user = $getFromU->userData($user_id);
+	$notify = $getFromM->getNotificationCount($user_id);
+	if($getFromU->loggedIn() === false){
+		header('Location: '.BASE_URL.'index.php');
+	}
+
+	$getFromU->delete('comments', array('commentID' => '2'));
+
+	if(isset($_POST['post'])){
+		$status = $getFromU->checkInput($_POST['status']);
+		$postImage = '';
+
+		if(!empty($status) or !empty($_FILES['file']['name'][0])){
+
+			if(!empty($_FILES['file']['name'][0])){
+				$postImage = $getFromU->uploadImage($_FILES['file']);
+			}
+
+			if(strlen($status) > 140){
+				$error = "The text is too long!";
+			}
+			$post_id = $getFromU->create('posts', array('status' => $status, 'postBy' => $user_id, 'postimage' => $postImage, 'postedOn' => date('Y-m-d H:i:s')));
+			preg_match_all("/#+([a-zA-Z0-9_]+)/i", $status, $hashtag);
+			if(!empty($hashtag)){
+				$getFromP->addTrend($status);
+			}
+			$getFromP->addMention($status, $user_id, $post_id);
+		}else{
+			$error= "Type or chose an image to post";
+		}
+	}
 ?>
 
 
@@ -11,7 +41,7 @@
 		<title>MediConnect</title>
 		  <meta charset="UTF-8" />
 		  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.css"/>
- 	  	  <link rel="stylesheet" href="assets/css/style-complete.css"/>
+ 	  	  <link rel="stylesheet" href="assets/css/style-sheet.css"/>
    		  <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
 	</head>
 	<!--Helvetica Neue-->
@@ -26,9 +56,9 @@
 
 		<div class="nav-left">
 			<ul>
-				<li><a href="#"><i class="fa fa-home" aria-hidden="true"></i>Home</a></li>
-				<li><a href="i/notifications"><i class="fa fa-bell" aria-hidden="true"></i>Notification</a></li>
-				<li><i class="fa fa-envelope" aria-hidden="true"></i>Messages</li>
+				<li><a href="home.php"><i class="fa fa-home" aria-hidden="true"></i>Home</a></li>
+				<li><a href="i/notifications"><i class="fa fa-bell" aria-hidden="true"></i>Notification<span id="notification"><?php if($notify->totalN > 0){echo '<span class="span-i">'.$notify->totalN.'</span>';}?></span></a></li>
+				<li id="messagePopup"><i class="fa fa-envelope" aria-hidden="true"></i>Messages<span id="messages"><?php if($notify->totalM > 0){echo '<span class="span-i">'.$notify->totalM.'</span>';} ?></span></li>
 			</ul>
 		</div><!-- nav left ends-->
 
@@ -63,6 +93,10 @@
 
 </div><!-- header wrapper end -->
 
+<script type="text/javascript" src="assets/js/search.js"></script>
+<script type="text/javascript" src="assets/js/hashtag.js"></script>
+<script type="text/javascript" src="assets/js/repost.js"></script>
+
 <!---Inner wrapper-->
 <div class="inner-wrapper">
 <div class="in-wrapper">
@@ -96,7 +130,7 @@
 								POSTS
 							</div>
 							<div class="num-body">
-								10
+								<?php $getFromP->countPosts($user_id); ?>
 							</div>
 						</div>
 						<div class="num-box">
@@ -121,7 +155,7 @@
 		</div><!-- info box end-->
 
 	<!--==TRENDS==-->
- 	  <!---TRENDS HERE-->
+ 	 <?php $getFromP->trends(); ?>
  	<!--==TRENDS==-->
 
 	</div><!-- in left wrap-->
@@ -150,7 +184,7 @@
 						 		<ul>
 						 			<input type="file" name="file" id="file"/>
 						 			<li><label for="file"><i class="fa fa-camera" aria-hidden="true"></i></label>
-						 			<span class="post-error"></span>
+						 			<span class="post-error"><?php if(isset($error)){echo $error;}else if(isset($imageError)){echo $imageError;} ?></span>
 						 			</li>
 						 		</ul>
 						 	</div>
@@ -166,7 +200,7 @@
 
 				<!--Post SHOW WRAPPER-->
 				 <div class="posts">
- 				  	<!--POSTS HERE-->
+ 				  	<?php $getFromP->posts($user_id,10); ?>
  				 </div>
  				<!--POSTS SHOW WRAPPER-->
 
@@ -176,6 +210,18 @@
 				<div class="popupPost"></div>
 				<!--Post END WRAPER-->
 
+			<script type="text/javascript" src="assets/js/like.js"></script>
+			<script type="text/javascript" src="assets/js/repost.js"></script>
+			<script type="text/javascript" src="assets/js/popupposts.js"></script>
+			<script type="text/javascript" src="assets/js/delete.js"></script>
+			<script type="text/javascript" src="assets/js/comment.js"></script>
+			<script type="text/javascript" src="assets/js/popupForm.js"></script>
+			<script type="text/javascript" src="assets/js/fetch.js"></script>
+			<script type="text/javascript" src="assets/js/follow.js"></script>
+			<script type="text/javascript" src="assets/js/messages.js"></script>
+			<script type="text/javascript" src="assets/js/postMessage.js"></script>
+			<script type="text/javascript" src="assets/js/notification.js"></script>
+
 			</div><!-- in left wrap-->
 		</div><!-- in center end -->
 
@@ -183,13 +229,13 @@
 			<div class="in-right-wrap">
 
 		 	<!--Who To Follow-->
-		      <!--WHO_TO_FOLLOW HERE-->
+		      <?php $getFromF->whoToFollow($user_id, $user_id); ?>
       		<!--Who To Follow-->
 
  			</div><!-- in left wrap-->
 
 		</div><!-- in right end -->
-
+		<script type="text/javascript" src="assets/js/follow.js"></script>
 	</div><!--in full wrap end-->
 
 </div><!-- in wrappper ends-->
